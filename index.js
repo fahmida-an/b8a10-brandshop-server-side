@@ -30,9 +30,16 @@ async function run() {
     await client.connect();
 
     const productCollection = client.db("ProductsDB").collection('Products');
+    const cartCollection = client.db("ProductDB").collection('cart');
 
     app.get('/products', async(req,res) => {
       const cursor = productCollection.find();
+      const result = await cursor.toArray();
+      res.send(result)
+    })
+
+    app.get('/cart', async(req,res) => {
+      const cursor = cartCollection.find();
       const result = await cursor.toArray();
       res.send(result)
     })
@@ -60,6 +67,14 @@ async function run() {
       res.send(result);
     })
 
+    app.post('/cart', async(req,res) => {
+      const newcart = req.body;
+      console.log(newcart);
+      const result = await cartCollection.insertOne(newcart);
+      res.send(result);
+    })
+
+
     app.put('/products/:brandname/:id', async(req,res) => {
       const id = req.params.id;
       const filter = {_id: new ObjectId(id)}
@@ -79,15 +94,22 @@ async function run() {
           }
       }
 
-      const result = await productCollection.updateOne(filter, product, options )
+      const result = await productCollection.updateOne(filter, product, options)
       res.send(result);
   })
 
-  app.delete('/products/:brandname/:id', async(req,res) => {
+  app.delete('/cart/:id', async(req,res) => {
     const id = req.params.id;
     const query = {_id: new ObjectId(id)}
-    const result = await productCollection.deleteOne(query);
+    const result = await cartCollection.deleteOne(query);
     res.send(result)
+})
+
+app.delete('/product/:id', async(req,res) => {
+  const id = req.params.id;
+  const query = {_id: new ObjectId(id)}
+  const result = await productCollection.deleteOne(query);
+  res.send(result)
 })
 
 
